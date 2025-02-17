@@ -39,6 +39,8 @@ class GelfHandlerSettings(ABC):
     # Graylog port (default=12201)
     optional_fields: Dict[str, Any] = field(default_factory=lambda: dict())
     # optional gelf fields as dictionary. Will be added to each log record.
+    enabled: bool = field(default=True)
+    # True - the handler is enabled (default), False - the handler is disabled
 
     # -- HTTP
 
@@ -96,35 +98,34 @@ class GelfSettings(object):
                             protocol: HTTP
                             host: localhost # host name or IP address of the GELF input
                             port: 80        # port of the GELF input
-                            optional_fields: # optiona fields added to each log record 
+                            optional_fields: # optional fields added to each log record
                                 localname: encab
     """
 
+    GRAYLOG_ENABLED = "GRAYLOG_ENABLED"
+    GRAYLOG_PROTOCOL = "GRAYLOG_PROTOCOL"
+    GRAYLOG_HOST = "GRAYLOG_HOST"
+    GRAYLOG_PORT = "GRAYLOG_PORT"
+    GRAYLOG_OPTIONAL_FIELDS = "GRAYLOG_OPTIONAL_FIELDS"
+
     handlers: Dict[str, GelfHandlerSettings]
 
-    @staticmethod
-    def update_default_handler(
-        settings: "GelfSettings", environment: Dict[str, Any]
-    ) -> "GelfSettings":
-
-        GRAYLOG_PROTOCOL = "GRAYLOG_PROTOCOL"
-        GRAYLOG_HOST = "GRAYLOG_HOST"
-        GRAYLOG_PORT = "GRAYLOG_PORT"
-        GRAYLOG_OPTIONAL_FIELDS = "GRAYLOG_OPTIONAL_FIELDS"
-
+    def update_default_handler(self, environment: Dict[str, Any]) -> None:
         set_default_handler = False
         for var in [
-            GRAYLOG_PROTOCOL,
-            GRAYLOG_HOST,
-            GRAYLOG_PORT,
-            GRAYLOG_OPTIONAL_FIELDS,
+            self.GRAYLOG_ENABLED,
+            self.GRAYLOG_PROTOCOL,
+            self.GRAYLOG_HOST,
+            self.GRAYLOG_PORT,
+            self.GRAYLOG_OPTIONAL_FIELDS,
         ]:
             if var in environment:
                 set_default_handler = True
                 break
 
         if set_default_handler:
-            optional_fields_var = environment.get(GRAYLOG_OPTIONAL_FIELDS)
+            is_enabled = environment.get(self.GRAYLOG_ENABLED, 1) in ("True", "true", 1)
+            optional_fields_var = environment.get(self.GRAYLOG_OPTIONAL_FIELDS)
             optional_fields = dict()
             if optional_fields_var:
                 try:
@@ -132,26 +133,37 @@ class GelfSettings(object):
                     assert isinstance(optional_fields, dict)
                 except Exception as e:
                     raise ConfigError(
-                        f"Error parsing environment variable {GRAYLOG_OPTIONAL_FIELDS}: {str(e)}"
+                        f"Error parsing environment variable {self.GRAYLOG_OPTIONAL_FIELDS}: {str(e)}"
                     )
 
-            if "default" not in settings.handlers:
-                protocol = environment.get(GRAYLOG_PROTOCOL, "HTTP")
-                host = environment.get(GRAYLOG_HOST, "localhost")
-                port = environment.get(GRAYLOG_PORT, 12201)
-                settings.handlers["default"] = GelfHandlerSettings(
-                    protocol, host, port, optional_fields
+            if "default" not in self.handlers:
+                protocol = environment.get(self.GRAYLOG_PROTOCOL, "HTTP")
+                host = environment.get(self.GRAYLOG_HOST, "localhost")
+                port = int(environment.get(self.GRAYLOG_PORT, 12201))
+                self.handlers["default"] = GelfHandlerSettings(
+                    protocol, host, port, optional_fields, is_enabled
+                )
+                mylogger.info(
+                    "Added default GELF handler from environment: %s",
+                    str(self.handlers["default"]),
+                    extra={"program": ENCAB_GELF},
                 )
             else:
-                handler = settings.handlers["default"]
-                handler.protocol = environment.get(GRAYLOG_PROTOCOL, handler.protocol)
-                handler.host = environment.get(GRAYLOG_HOST, handler.host)
-                handler.port = environment.get(GRAYLOG_PORT, handler.port)
+                handler = self.handlers["default"]
+                handler.enabled = is_enabled
+                handler.protocol = environment.get(
+                    self.GRAYLOG_PROTOCOL, handler.protocol
+                )
+                handler.host = environment.get(self.GRAYLOG_HOST, handler.host)
+                handler.port = int(environment.get(self.GRAYLOG_PORT, handler.port))
                 handler.optional_fields = (
                     optional_fields if optional_fields_var else handler.optional_fields
                 )
-
-        return settings
+                mylogger.info(
+                    "Added default GELF handler from environment: %s",
+                    str(handler),
+                    extra={"program": ENCAB_GELF},
+                )
 
     @staticmethod
     def load(settings: Dict[str, Any]) -> "GelfSettings":

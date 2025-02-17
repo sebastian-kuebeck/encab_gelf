@@ -3,7 +3,7 @@
 #
 encab:
     dry_run: false
-    debug: true
+    debug: false
     halt_on_exit: false
 extensions:
     encab_gelf:
@@ -11,6 +11,7 @@ extensions:
         settings:
             handlers:
                 default:
+                    enabled: True
                     protocol: HTTP
                     host: localhost # host name or IP address of the GELF input
                     port: 11201     # port of the GELF input

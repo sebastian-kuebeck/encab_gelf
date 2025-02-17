@@ -99,6 +99,9 @@ class GelfLogHandlerFactory(object):
 
     def createAll(self) -> Iterator[Handler]:
         for name, settings in self.gelf_settings.handlers.items():
+            if not settings.enabled:
+                continue
+
             recognizers = RecognizerFactory(settings.recognizer)
             yield MultiLineHandler(
                 name,
@@ -112,72 +115,77 @@ class GelfLogHandlerFactory(object):
 
 extension_impl = HookimplMarker(ENCAB)
 
-is_enabled: bool = False
 
-gelf_settings: Optional[GelfSettings] = None
+class GelfExtension:
+    def __init__(self) -> None:
+        self.settings: Optional[GelfSettings] = None
+        self.factory: Optional[GelfLogHandlerFactory] = None
 
-factory: Optional[GelfLogHandlerFactory] = None
+    def validate_settings(self, settings: Dict[str, Any]) -> None:
+        GelfSettings.load(settings)
+
+    def update_settings(self, settings: Dict[str, Any]) -> None:
+        self.settings = GelfSettings.load(settings)
+        self.factory = GelfLogHandlerFactory(self.settings)
+
+    def update_from_environment(self, environment: Dict[str, str]) -> None:
+        assert self.factory
+        assert self.settings
+        self.settings.update_default_handler(environment)
+
+    def is_enabled(self) -> bool:
+        return self.settings is not None
+
+
+extension = GelfExtension()
 
 
 @extension_impl
 def validate_extension(name: str, enabled: bool, settings: Dict[str, Any]):
+    global extension
+
     if name != ENCAB_GELF:
         return
 
     if not enabled:
         return
 
-    gelf_settings = GelfSettings.load(settings)
-    GelfLogHandlerFactory(gelf_settings)
+    extension.validate_settings(settings)
 
 
 @extension_impl
 def configure_extension(name: str, enabled: bool, settings: Dict[str, Any]):
-    global gelf_settings, factory, is_enabled
+    global extension
 
     if name != ENCAB_GELF:
         return
 
-    is_enabled = enabled
     if not enabled:
         return
 
-    gelf_settings = GelfSettings.load(settings)
-    factory = GelfLogHandlerFactory(gelf_settings)
+    from os import environ
 
-
-@extension_impl
-def extend_environment(program_name: str, environment: Dict[str, str]):
-    global gelf_settings, factory, is_enable
-
-    if program_name == ENCAB:
-        assert gelf_settings
-        assert factory
-
-        if "GRAYLOG_ENABLED" in environment:
-            is_enabled = environment["GRAYLOG_ENABLED"] in ("True", "true", 1)
-
-        if not is_enabled:
-            return
-
-        gelf_settings = GelfSettings.update_default_handler(gelf_settings, environment)
-        factory.update_settings(gelf_settings)
-
-
-@extension_impl
-def update_logger(program_name: str, logger: Logger):
-    global is_enable
-
-    if program_name == ENCAB:
-        return
+    is_enabled = environ.get(GelfSettings.GRAYLOG_ENABLED, 1) in ("True", "true", 1)
 
     if not is_enabled:
         return
 
-    if not factory:
+    extension.update_settings(settings)
+    extension.update_from_environment(dict(environ))
+
+
+@extension_impl
+def update_logger(program_name: str, logger: Logger):
+    global extension
+
+    if program_name == ENCAB:
+        return
+
+    if not extension.is_enabled():
         return
 
     mylogger.info("Adding GELF Handlers", extra={"program": ENCAB_GELF})
 
-    for hander in factory.createAll():
+    assert extension.factory
+    for hander in extension.factory.createAll():
         logger.addHandler(hander)

@@ -21,7 +21,7 @@ class BaseHandler(object):
         static_fields=None,
         json_default=gelf.object_to_json,
         additional_env_fields=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Logging handler that transforms each record into GELF (graylog extended log format) and sends it over TCP.
@@ -126,7 +126,7 @@ class GelfTlsHandler(GelfTcpHandler):
         ca_certs=None,
         certfile=None,
         keyfile=None,
-        **kwargs
+        **kwargs,
     ):
         """
         TCP GELF logging handler with TLS support
@@ -222,7 +222,7 @@ class GelfHttpsHandler(BaseHandler, LoggingHandler):
         certfile=None,
         keyfile=None,
         keyfile_password=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Logging handler that transforms each record into GELF (graylog extended log format) and sends it over HTTP.
