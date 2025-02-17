@@ -1,8 +1,13 @@
 # GELF Plugin for Encab
 
+[![image](https://img.shields.io/pypi/v/encab-gelf.svg)](https://pypi.python.org/pypi/encab-gelf)
+[![image](https://img.shields.io/pypi/l/encab-gelf.svg)](https://pypi.python.org/pypi/encab-gelf)
+[![image](https://img.shields.io/pypi/pyversions/encab-gelf.svg)](https://pypi.python.org/pypi/encab-gelf)
+
 Redirects [encab](https://pypi.org/project/encab/) logging to Graylog using the GELF protocol.
 
-/!\ Warning! This module is still under construction and not ready for production use!
+[!WARNING] 
+This module is still under construction and not ready for production use!
 
 ## Installation
 
