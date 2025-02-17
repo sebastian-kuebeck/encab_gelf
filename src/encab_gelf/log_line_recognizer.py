@@ -5,7 +5,7 @@ from enum import Enum
 from logging import getLogger, DEBUG
 
 import re
-from grok import GrokPattern  # type: ignore
+from pygrok import Grok as GrokPattern  # type: ignore
 
 mylogger = getLogger(__name__)
 mylogger.setLevel(DEBUG)
@@ -82,7 +82,7 @@ class GrokRecognizer(LogLineRecognizer):
         self.log_level_tag = log_level_tag
 
     def recognize(self, line: str) -> LogLine:
-        match = self.pattern.regex.match(line)
+        match = self.pattern.match(line)
         attrs = match.groupdict() if match else dict()
         attrs = {k: v for k, v in attrs.items() if k != self.log_level_tag}
         levelName = attrs.get(self.log_level_tag, 0)
