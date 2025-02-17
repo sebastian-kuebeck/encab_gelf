@@ -1,0 +1,26 @@
+#
+# Sample encab config for integration test
+#
+encab:
+    dry_run: false
+    debug: true
+    halt_on_exit: false
+extensions:
+    encab_gelf:
+        module: encab_gelf
+        settings:
+            handlers:
+                HTTP:
+                    protocol: HTTP
+                    host: localhost # host name or IP address of the GELF input
+                    port: 11201     # port of the GELF input
+                    optional_fields:
+                        localname: encab
+
+programs:
+    main:
+        sh: 
+            - echo "Test1\n Line 1\n Line 2\n Waiting for Test2"
+            - sleep 1
+            - echo "Test2"
+            - sleep 1

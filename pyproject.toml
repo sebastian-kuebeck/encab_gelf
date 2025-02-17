@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=63.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "encab_gelf"
+version = "0.0.1"
+authors = [
+  { name="Sebastian Kuebeck", email="sebastian.kuebeck@encab.io" },
+]
+description = "GELF extension for encab process manager"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "encab >= 1.0.1, < 2",
+  "pygrok >= 1.0.0, < 2"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/sebastian-kuebeck/encab_gelf"
+"Documentation" = "https://github.com/sebastian-kuebeck/encab_gelf/README.MD"
+"Bug Tracker" = "https://github.com/sebastian-kuebeck/encab_gelf"
+
+
+[tool.ruff]
+line-length = 120

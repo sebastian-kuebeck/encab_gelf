@@ -1,0 +1,15 @@
+# Runtime
+encab >= 1.0.1, < 2
+pygrok >= 1.0.0, < 2
+
+# Build
+build~=1.2.1
+
+# Formatting
+black~=24.4.2
+
+# Validation
+mypy~=1.0.1
+ruff~=0.4.8
+pip_audit~=2.7.3
+tox~=4.15.1
