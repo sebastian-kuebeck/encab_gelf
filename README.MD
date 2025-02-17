@@ -2,10 +2,12 @@
 
 Redirects [encab](https://pypi.org/project/encab/) logging to Graylog using the GELF protocol.
 
+/!\ Warning! This module is still under construction and not ready for production use!
+
 ## Installation
 
 ```shell
-pip install encab encab_gelf
+pip install encab-gelf
 ```
 
 ## Configuration

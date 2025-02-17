@@ -10,7 +10,7 @@ extensions:
         module: encab_gelf
         settings:
             handlers:
-                HTTP:
+                default:
                     protocol: HTTP
                     host: localhost # host name or IP address of the GELF input
                     port: 11201     # port of the GELF input

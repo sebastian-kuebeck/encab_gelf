@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "encab_gelf"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Sebastian Kuebeck", email="sebastian.kuebeck@encab.io" },
 ]
 description = "GELF extension for encab process manager"
-readme = "README.md"
+readme = "README.MD"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3.9",

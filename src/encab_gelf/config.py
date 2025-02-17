@@ -70,7 +70,7 @@ class GelfHandlerSettings(ABC):
     keyfile: Optional[str] = field(default=None)
     # path to the private key. If the private key is stored with the certificate, this parameter can be ignored
 
-    recognizer: RecognizerSettings = field(default=RecognizerSettings())
+    recognizer: RecognizerSettings = field(default_factory=lambda: RecognizerSettings())
     # log line recognizer settings
 
 
