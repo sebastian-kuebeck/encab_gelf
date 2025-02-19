@@ -6,6 +6,8 @@ from http.client import HTTPException
 from .one_shot_timer import OneShotTimer
 from .log_line_recognizer import LogLineRecognizer, DefaultRecognizer
 
+from socket import error as SocketError
+
 ENCAB = "encab"
 ENCAB_GELF = "encab_gelf"
 
@@ -143,11 +145,12 @@ class RecognizingHandler(Handler):
 
 
 class ErrorHandler(Handler):
-    def __init__(self, handler: Handler, handler_name: str) -> None:
+    def __init__(self, handler: Handler, handler_name: str, host_url: str) -> None:
         super().__init__(handler.level)
         self.handler = handler
         self.errors: int = 0
         self.handler_name: str = handler_name
+        self.host_url = host_url
 
     def emit(self, log_record: LogRecord) -> None:
         record = ExtLogRecord.fromRecord(log_record)
@@ -159,11 +162,12 @@ class ErrorHandler(Handler):
             self.handler.emit(record)
             if self.errors:
                 self.errors = 0
-        except (HTTPException, ConnectionError) as e:
+        except (HTTPException, ConnectionError, SocketError) as e:
             if not self.errors:
                 mylogger.warning(
-                    "GELF Handler %s failed to connect to Graylog:  %s",
+                    "GELF Handler %s failed to connect to %s: %s",
                     self.handler_name,
+                    self.host_url,
                     str(e),
                     extra={"program": ENCAB_GELF, "suppress": True},
                 )
@@ -171,8 +175,9 @@ class ErrorHandler(Handler):
                 self.errors = (self.errors + 1) % 100
         except Exception as e:
             mylogger.exception(
-                "GELF Handler %s:  %s",
+                "GELF Handler %s connecting to %s: %s",
                 self.handler_name,
+                self.host_url,
                 str(e),
                 extra={"program": ENCAB_GELF, "suppress": True},
             )

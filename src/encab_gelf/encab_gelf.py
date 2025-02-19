@@ -50,7 +50,7 @@ class GelfLogHandlerFactory(object):
 
     def create(self, name: str, settings: GelfHandlerSettings):
         mylogger.info(
-            f"Configuring GELF filter {name}: {str(settings)}",
+            f"Configuring GELF filter {name}: {settings.log_info()}",
             extra={"program": ENCAB_GELF},
         )
         assert settings.protocol in ["HTTP", "HTTPS", "UDP", "TCP", "TLS"]
@@ -106,7 +106,9 @@ class GelfLogHandlerFactory(object):
             yield MultiLineHandler(
                 name,
                 RecognizingHandler(
-                    ErrorHandler(self.create(name, settings), name),
+                    ErrorHandler(
+                        self.create(name, settings), name, settings.host_url()
+                    ),
                     name,
                     recognizers.create(),
                 ),

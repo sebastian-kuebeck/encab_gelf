@@ -121,7 +121,7 @@ class ErrorHandlerTest(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.test_handler = TestHandler()
-        self.handler = ErrorHandler(self.test_handler, "test")
+        self.handler = ErrorHandler(self.test_handler, "test", "localhost")
 
         self.test_handler2 = TestHandler()
         mylogger.addHandler(self.test_handler2)
@@ -137,7 +137,7 @@ class ErrorHandlerTest(unittest.TestCase):
         )
 
     def test_exception_in_emit(self):
-        self.test_handler.exception = IOError("Expected Error")
+        self.test_handler.exception = RuntimeError("Expected Error")
         self.handler.emit(self.record(INFO, "Test Message1"))
         record = self.test_handler2.records[0]
         self.assertEqual(
@@ -145,6 +145,6 @@ class ErrorHandlerTest(unittest.TestCase):
             record[0],
         )
         self.assertEqual(
-            "GELF Handler test:  Expected Error",
+            "GELF Handler test connecting to localhost: Expected Error",
             record[1].split("\n")[0],
         )

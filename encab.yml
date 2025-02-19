@@ -13,7 +13,7 @@ extensions:
                 default:
                     enabled: True
                     protocol: HTTP
-                    host: localhost # host name or IP address of the GELF input
+                    host: greylog # host name or IP address of the GELF input
                     port: 11201     # port of the GELF input
                     optional_fields:
                         localname: encab

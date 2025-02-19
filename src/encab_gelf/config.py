@@ -75,6 +75,12 @@ class GelfHandlerSettings(ABC):
     recognizer: RecognizerSettings = field(default_factory=lambda: RecognizerSettings())
     # log line recognizer settings
 
+    def host_url(self) -> str:
+        return f"{self.protocol.lower()}://{self.host}:{self.port}{self.path}"
+
+    def log_info(self) -> str:
+        return f"enabled = {self.enabled}, protocol = {self.protocol}, host = {self.host}, port = {self.port}, optional_fields = {self.optional_fields}"
+
 
 @dataclass
 class GelfSettings(object):
@@ -94,7 +100,7 @@ class GelfSettings(object):
                 enabled: true
                 settings:
                     handlers:
-                        HTTP:
+                        default:
                             protocol: HTTP
                             host: localhost # host name or IP address of the GELF input
                             port: 80        # port of the GELF input
@@ -107,6 +113,7 @@ class GelfSettings(object):
     GRAYLOG_HOST = "GRAYLOG_HOST"
     GRAYLOG_PORT = "GRAYLOG_PORT"
     GRAYLOG_OPTIONAL_FIELDS = "GRAYLOG_OPTIONAL_FIELDS"
+    DEFAULT_HANDLER = "default"
 
     handlers: Dict[str, GelfHandlerSettings]
 
@@ -136,16 +143,17 @@ class GelfSettings(object):
                         f"Error parsing environment variable {self.GRAYLOG_OPTIONAL_FIELDS}: {str(e)}"
                     )
 
-            if "default" not in self.handlers:
+            if self.DEFAULT_HANDLER not in self.handlers:
                 protocol = environment.get(self.GRAYLOG_PROTOCOL, "HTTP")
                 host = environment.get(self.GRAYLOG_HOST, "localhost")
                 port = int(environment.get(self.GRAYLOG_PORT, 12201))
-                self.handlers["default"] = GelfHandlerSettings(
+                handler = GelfHandlerSettings(
                     protocol, host, port, optional_fields, is_enabled
                 )
+                self.handlers[self.DEFAULT_HANDLER] = handler
                 mylogger.info(
                     "Added default GELF handler from environment: %s",
-                    str(self.handlers["default"]),
+                    handler.log_info(),
                     extra={"program": ENCAB_GELF},
                 )
             else:
@@ -160,8 +168,8 @@ class GelfSettings(object):
                     optional_fields if optional_fields_var else handler.optional_fields
                 )
                 mylogger.info(
-                    "Added default GELF handler from environment: %s",
-                    str(handler),
+                    "Updated default GELF handler from environment: %s",
+                    handler.log_info(),
                     extra={"program": ENCAB_GELF},
                 )
 
