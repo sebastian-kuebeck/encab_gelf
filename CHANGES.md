@@ -1,5 +1,8 @@
 # Changes
 
+## 0.0.5 (2025-02-19)
+- encab_gelf now loggs its version during startup
+
 ## 0.0.4 (2025-02-17)
 - improved error handling for Graylog servers with invalid host name
 

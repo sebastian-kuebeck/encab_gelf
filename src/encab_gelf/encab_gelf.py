@@ -22,6 +22,8 @@ from .gelf.handlers import (
 
 from .config import RecognizerSettings, GelfHandlerSettings, GelfSettings, ConfigError
 
+ENCAB_GELF_VERSION = "0.0.5"
+
 mylogger = getLogger(ENCAB_GELF)
 mylogger.setLevel(DEBUG)
 
@@ -152,6 +154,8 @@ def validate_extension(name: str, enabled: bool, settings: Dict[str, Any]):
     if not enabled:
         return
 
+    mylogger.info("encab_gelf %s", ENCAB_GELF_VERSION, extra={"program": ENCAB_GELF})
+
     extension.validate_settings(settings)
 
 
@@ -163,6 +167,11 @@ def configure_extension(name: str, enabled: bool, settings: Dict[str, Any]):
         return
 
     if not enabled:
+        mylogger.info(
+            "encab_gelf %s disabled by config",
+            ENCAB_GELF_VERSION,
+            extra={"program": ENCAB_GELF},
+        )
         return
 
     from os import environ
@@ -170,8 +179,17 @@ def configure_extension(name: str, enabled: bool, settings: Dict[str, Any]):
     is_enabled = environ.get(GelfSettings.GRAYLOG_ENABLED, 1) in ("True", "true", 1)
 
     if not is_enabled:
+        mylogger.info(
+            "encab_gelf %s disabled by %s",
+            GelfSettings.GRAYLOG_ENABLED,
+            ENCAB_GELF_VERSION,
+            extra={"program": ENCAB_GELF},
+        )
         return
 
+    mylogger.info(
+        "encab_gelf %s enabled", ENCAB_GELF_VERSION, extra={"program": ENCAB_GELF}
+    )
     extension.update_settings(settings)
     extension.update_from_environment(dict(environ))
 
